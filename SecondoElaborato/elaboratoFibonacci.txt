@@ -1,0 +1,61 @@
+/********************************************************************************
+ *                                                                              *
+ *                   Architetture dei sistemi di Elaborazione                   *
+ *                                                                              *
+ ********************************************************************************
+
+ Elaborato 2
+ Descrizione: Dato in input un numero naturale n, restituire i primi n termini
+			  della successione di Fibonacci.
+
+ ********************************************************************************/
+
+
+#include <stdio.h>
+
+void main()
+{
+	//Variabili
+	int n = 40;						//Numero di termini da restituire
+	int successione[50];			//Vettore in cui mettere i primi n termini
+									//della successione di Fibonacci
+
+	//Blocco Assembler
+	__asm
+	{
+		XOR EAX, EAX						//in queste quattro istruzioni di XOR  vado a azzerare i quattro registri principali
+		XOR EBX, EBX
+		XOR ECX, ECX
+		XOR EDX, EDX
+		MOV successione[EAX * 4], EAX		//assegno a successione[0] lo zero poiché è uno dei numeri di partenza della sequenza di Fibonacci.
+		CMP n, 0							//le due istruzioni CMP (prima con 0 e poi con 1) con i relativi JMP condizionali servono al fine di prevenire cicli infiniti dovuti al contatore settato a 2.
+		JZ controllo
+		INC EAX								//incremento EAX di una unità
+		MOV successione[EAX * 4], EAX		//assegno il valore 1 a successione[1] ppiché secondo termine necessario della sequenza di Fibonacci.
+		CMP n, 1
+		JE controllo
+		ADD ECX, 2							//incremento di due ECX poiché le prime due celle del vettore sono riempite
+		ciclo: 
+			MOV EDX, EAX					//utilizzo EAX come registro di swapping per andare a salvare il mio attuale numero più grande.
+			ADD EAX, EBX
+			MOV successione[ECX * 4], EAX   //assegno a successione[ECX * 4] il valore di eax + ebx.
+			MOV EBX, EDX					//assegno a EBX il valore di EDX (ovvero il precedente valore di EAX).
+			MOV EDX, n
+			INC EDX
+			INC ECX							//incremento la mia variabile contatore.
+			CMP ECX, EDX					//faccio compare per vedere se ho finito
+
+			JNE ciclo						//faccio salto condizionato dal risultato della CMP subito sopra su etichetta ciclo.
+			controllo:						//etichetta usata per saltare se le condizionali inizali dei jump si dovessero verificare, in modo da prevenire problemi.
+
+	}
+
+	//Stampa su video
+	{
+		int i;
+		for (i = 0; i <= n; i++)
+		{
+			printf("%d\n", successione[i]);
+		}
+	}
+}

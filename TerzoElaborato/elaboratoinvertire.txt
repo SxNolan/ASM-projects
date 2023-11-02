@@ -1,0 +1,73 @@
+/********************************************************************************
+ *                                                                              *
+ *                   Architetture dei sistemi di Elaborazione                   *
+ *                                                                              *
+ ********************************************************************************
+
+ Elaborato 3
+ Descrizione: Dato un array di BYTE, invertire l’ordine dei bit all’interno
+			  dell’array.
+
+ ********************************************************************************/
+
+
+#include <stdio.h>
+
+void main()
+{
+#define MAX_LEN	100
+
+	// Input
+	unsigned char vet[] = { 0xAA, 0xFC, 0x09 };			//Array di BYTE
+	unsigned int len = sizeof(vet) / sizeof(vet[0]);	// numero di byte in vet	
+// Output
+	unsigned char res[MAX_LEN];						//Array di BYTE contenente il risultato 
+
+// Blocco assembler
+	__asm
+	{
+		XOR EAX, EAX								//azzero il registro EAX mediante XOR
+		XOR EBX, EBX								//azzero il registro EBX mediante XOR
+		XOR ECX, ECX								//azzero il registro ECX mediante XOR
+		XOR EDX, EDX								//azzero il registro EDX mediante XOR
+		MOV ECX, len								//grazie a questa MOV vado ad assegnare la lunghezza in numero intero del mio vettore di byte al mio registro, che fungerà da contatore
+		MOV EBX, ECX								
+
+		JMP considerazionebytesingolo				//faccio jump incodizionato alla parte dei byte poiché devo iniziare dal primo byte all'interno dell'array di partenza.
+
+		considerazionesingolobit:					//etichetta che mi permetterà di saltare alla considerazioen dei bit singoli
+		SHL AL, 1									//faccio shift aritmetico di un singolo bit verso sinistra. In poche parole, sfrutto il fatto che il bit estratto
+													//non andrà perso ma finirà bensì nel bit di carry.
+		RCR res[EBX], 1								//collegandomi col commento subito sopra, vado a recuperare il bit apparentemente perduto grazie all'istruzione
+													//precedente all'interno del carry grazie a RCR (rotate carry right). In questo modo agendo ricorsivamente sto di fatto
+													//invertendo l'ordine dei bit all'interno del byte considerato.
+		DEC ECX										//decremento ECX (serve al fine di passare al prossimo bit da invertire). 
+		JNZ considerazionesingolobit				//controllo se ECX non è arrivato a zero. 
+		INC EDX										//incremento il registro EDX di una unità.
+		POP ECX										//estraggo dallo stack di sistema e metto il contenuto estratto dentro ECX
+		DEC ECX										//dopodiché lo decremento di una unità per vedere se è diventato zero.
+		JNZ considerazionebytesingolo				//se è diverso da zero reitero il ragionamento sul prossimo byte.
+		JMP fine									//altrimenti faccio un salto condizionale a fine, in cui azzererò i registri utilizzati dal programma.
+
+		considerazionebytesingolo :
+		PUSH ECX									//inserisco il valore attuale del registro ECX all'interno dello stack di sistema.
+		DEC EBX										//decrememnto EBX di una unità
+		MOV ECX, 8									//qui assegno a ECX il valore 8 poiché servirà al fine di capire se, una volta dentor un byte in particolare, avrò
+													//finito di invertirlo. (ossia quando ECX sarà uguale a zero.
+		MOV AL, vet[EDX]							//assegno ad AL (byte del registro EAX) il contenuto del particolare elemento da invertire.
+		JMP considerazionesingolobit				//una volta sistemato tutto faccio un salto incondizionato verso la parte che si occupa dei bit singoli.
+
+		fine:
+		XOR EAX, EAX								//onde evitare problemi vado a azzerare nuovamente il registro EAX
+		XOR EBX, EBX								//onde evitare problemi vado a azzerare nuovamente il registro EBX
+		XOR ECX, ECX								//onde evitare problemi vado a azzerare nuovamente il registro ECX
+		XOR EDX, EDX								//onde evitare problemi vado a azzerare nuovamente il registro EDX
+	}
+
+	// Stampa su video
+	{
+		unsigned int i;
+		for (i = 0; i < len; i++)
+			printf("res[%2d] = %10d (%08X)\n", i, res[i], res[i]);
+	}
+}

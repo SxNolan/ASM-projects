@@ -1,0 +1,203 @@
+/*********************************************************************************
+ *                                                                               *
+ *                   Architetture dei sistemi di Elaborazione                    *
+ *                                                                               *
+ *********************************************************************************
+
+ Elaborato 1
+ Descrizione:	Data una stringa C (terminata dal carattere nullo), contenente una
+			frase (ossia parole separate da spazi e/o segni di punteggiatura),
+			trovare la parola più lunga e la parola più corta. In caso di parole
+			di uguale lunghezza, considerare la prima da sinistra.
+			Le due parole vanno copiate in due array di caratteri come stringhe
+			C (terminate dal carattere nullo).
+			I segni di punteggiatura da considerare sono: ".,;:'?!"
+
+ **********************************************************************************/
+
+
+#include <stdio.h>
+
+
+void main()
+{
+	// Variabili
+#define MAX_LEN	100
+	char frase[MAX_LEN] = "Cantami, o Diva, del Pelide Achille l'ira funesta che \
+												infiniti addusse lutti agli Achei";
+	char parolaMax[MAX_LEN + 1];
+	char parolaMin[MAX_LEN + 1];
+
+	// Blocco assembler
+	__asm
+	{
+		XOR EAX, EAX
+		XOR EBX, EBX
+		XOR ECX, ECX
+		XOR EDX, EDX
+		XOR ESI, ESI
+		XOR EDI, EDI
+		//azzeramento dei registri da utilizzare
+
+		JMP lettura_stringa1
+
+		copiaturaindice1:
+		MOV EDX, EAX
+		JMP continuolettura1
+
+		possibile_spaziatura1:			//serie di controlli al fine di esaminare la possibilità di avere a che fare con un carattere di spaziatura.
+		CMP frase[EAX], 20h				//confronto la lettera attualmente sotto osservazione col carattere spazio
+		JE copiatura1
+		CMP frase[EAX], 2Eh				//confronto la lettera attualmente sotto osservazione col carattere punto
+		JE copiatura1
+		CMP frase[EAX], 2Ch				//confronto la lettera attualmente sotto osservazione col carattere virgola
+		JE copiatura1
+		CMP frase[EAX], 3Bh				//confronto la lettera attualmente sotto osservazione col carattere punto e virgola
+		JE copiatura1
+		CMP frase[EAX], 3Ah				//confronto la lettera attualmente sotto osservazione col carattere due punti
+		JE copiatura1
+		CMP frase[EAX], 27h				//confronto la lettera attualmente sotto osservazione col carattere apostrofo
+		JE copiatura1
+		CMP frase[EAX], 3Fh				//confronto la lettera attualmente sotto osservazione col carattere punto interrogativo
+		JE copiatura1
+		CMP frase[EAX], 21h				//confronto la lettera attualmente sotto osservazione col carattere punto esclamativo
+		JE copiatura1
+		INC EAX							//se non trovo caratteri di spaziatura passo a visionare la lettera successiva incrementando EAX
+		INC ECX							//incremento dunque anche il mio "contatore temporaneo".
+		JMP lettura_stringa1
+		
+		copiatura1:
+		CMP ECX, 0						//controllo questa eventualità per prevenire il caso in cui il mio spaziatore trovato si verifichi in seguito
+										//ad un altro spaziatore.
+		JE caratteredoppione1
+		CMP EDI, 0
+		JE primacopiatura1
+		CMP ECX, EDI
+		JB primacopiatura1
+		INC EAX
+		INC ECX
+		JMP lettura_stringa1
+
+		lettura_stringa1:
+		CMP ECX, 0
+		JE copiaturaindice1
+		continuolettura1:
+		CMP frase[EAX], 00h				//confronto la lettera attualmente sotto osservazione col carattere terminatore
+		JE fine_lettura1					//se si verifica uguaglianza passo alla stampa delle parole trovate.
+		JMP possibile_spaziatura1		//faccio controllo con vari CMP per veirficare che il carattere non sia una
+										//spaziatura.
+
+		primacopiatura1:
+		MOV ESI, ECX						//assegno a CL il valore counter trovato
+		MOV EDI, ECX
+		XOR ECX, ECX						//azzero CH poiché mi servirà per la copiatura
+		ciclo1:								//ciclo per copiare parola.
+		MOV BH, frase[EDX]
+		MOV parolaMin[ECX], BH				//inizio copiatura carattere per carattere
+		INC ECX								//passo incrementale del counter per la parola da copiare
+		INC EDX
+		DEC ESI								//decremento registro CL
+		CMP ESI, 0							//controllo se CH è arrivato a zero.
+		JNZ ciclo1
+		MOV parolaMin[ECX], 00h				//assegno all'ultimo carattere della parola copiata il carattere terminatore
+		XOR ECX, ECX
+		INC EAX
+		JMP lettura_stringa1
+
+
+
+		caratteredoppione1:					//tag che serve al fine di prevenire la ridondanza di caratteri di spaziatura
+		INC EAX								//incrmeento poiché passo al carattere da guardare successivo.
+		JMP lettura_stringa1
+		
+		fine_lettura1:
+
+
+
+		XOR EAX, EAX
+		XOR EBX, EBX
+		XOR ECX, ECX
+		XOR EDX, EDX
+		XOR ESI, ESI
+		XOR EDI, EDI
+		//azzeramento dei registri da utilizzare
+
+		JMP lettura_stringa2
+
+			copiaturaindice2 :
+		MOV EDX, EAX
+			JMP continuolettura2
+
+			possibile_spaziatura2 :			//serie di controlli al fine di esaminare la possibilità di avere a che fare con un carattere di spaziatura.
+		CMP frase[EAX], 20h				//confronto la lettera attualmente sotto osservazione col carattere spazio
+			JE copiatura2
+			CMP frase[EAX], 2Eh				//confronto la lettera attualmente sotto osservazione col carattere punto
+			JE copiatura2
+			CMP frase[EAX], 2Ch				//confronto la lettera attualmente sotto osservazione col carattere virgola
+			JE copiatura2
+			CMP frase[EAX], 3Bh				//confronto la lettera attualmente sotto osservazione col carattere punto e virgola
+			JE copiatura2
+			CMP frase[EAX], 3Ah				//confronto la lettera attualmente sotto osservazione col carattere due punti
+			JE copiatura2
+			CMP frase[EAX], 27h				//confronto la lettera attualmente sotto osservazione col carattere apostrofo
+			JE copiatura2
+			CMP frase[EAX], 3Fh				//confronto la lettera attualmente sotto osservazione col carattere punto interrogativo
+			JE copiatura2
+			CMP frase[EAX], 21h				//confronto la lettera attualmente sotto osservazione col carattere punto esclamativo
+			JE copiatura2
+			INC EAX							//se non trovo caratteri di spaziatura passo a visionare la lettera successiva incrementando EAX
+			INC ECX							//incremento dunque anche il mio "contatore temporaneo".
+			JMP lettura_stringa2
+
+			copiatura2 :
+		CMP ECX, 0						//controllo questa eventualità per prevenire il caso in cui il mio spaziatore trovato si verifichi in seguito
+										//ad un altro spaziatore.
+			JE caratteredoppione2
+			CMP EDI, 0
+			JE primacopiatura2
+			CMP ECX, EDI
+			JA primacopiatura2
+			INC EAX
+			INC ECX
+			JMP lettura_stringa2
+
+			lettura_stringa2 :
+		CMP ECX, 0
+			JE copiaturaindice2
+			continuolettura2 :
+		CMP frase[EAX], 00h				//confronto la lettera attualmente sotto osservazione col carattere terminatore
+			JE fine_lettura2					//se si verifica uguaglianza passo alla stampa delle parole trovate.
+			JMP possibile_spaziatura2		//faccio controllo con vari CMP per veirficare che il carattere non sia una
+											//spaziatura.
+
+			primacopiatura2 :
+		MOV ESI, ECX						//assegno a CL il valore counter trovato
+			MOV EDI, ECX
+			XOR ECX, ECX						//azzero CH poiché mi servirà per la copiatura
+			ciclo2 :								//ciclo per copiare parola.
+		MOV BH, frase[EDX]
+			MOV parolaMax[ECX], BH				//inizio copiatura carattere per carattere
+			INC ECX								//passo incrementale del counter per la parola da copiare
+			INC EDX
+			DEC ESI								//decremento registro CL
+			CMP ESI, 0							//controllo se CH è arrivato a zero.
+			JNZ ciclo2
+			MOV parolaMax[ECX], 00h				//assegno all'ultimo carattere della parola copiata il carattere terminatore
+			XOR ECX, ECX
+			INC EAX
+			JMP lettura_stringa2
+
+
+
+		caratteredoppione2:					//tag che serve al fine di prevenire la ridondanza di caratteri di spaziatura
+		INC EAX								//incrmeento poiché passo al carattere da guardare successivo.
+			JMP lettura_stringa2
+
+			fine_lettura2 :
+
+	}
+
+	// Stampa su video
+	printf("%s\n%s\n%s\n", frase, parolaMax, parolaMin);
+
+}
